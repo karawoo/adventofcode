@@ -1,6 +1,8 @@
 library("readr")
 library("logger")
 library("rlang")
+library("parallel")
+library("parallelly")
 
 dat <- read_fwf("input06.txt", col_positions = fwf_widths(rep(1, 130))) |>
   as.matrix()
@@ -102,18 +104,22 @@ Guard <- R6::R6Class("Guard",
       options <- as.matrix(unique(private$history[2:nrow(private$history), ]))
       log_info("Checking {nrow(options)} options")
 
-      loops <- apply(
+      options <- split(options, seq_len(nrow(options)))
+
+      loops <- mclapply(
         options,
-        1,
-        function(x) {
+        function(x, map, fun) {
           log_info("trying option {toString(x)}")
-          if (self$check_for_loop(x, map)) {
+          if (fun(x, map)) {
             return(TRUE)
           }
           FALSE
-        }
+        },
+        map = map,
+        fun = self$check_for_loop,
+        mc.cores = availableCores()
       )
-      sum(loops)
+      sum(unlist(loops))
     }
   )
 )
