@@ -1,8 +1,9 @@
 library("readr")
+library("logger")
+library("rlang")
 
-dat <- read_fwf("input06.txt", col_positions = fwf_widths(rep(1, 10))) |>
+dat <- read_fwf("input06.txt", col_positions = fwf_widths(rep(1, 130))) |>
   as.matrix()
-
 
 Guard <- R6::R6Class("Guard",
   private = list(
@@ -24,8 +25,13 @@ Guard <- R6::R6Class("Guard",
       private$map <- map
       private$row <- which(map == "^", arr.ind = TRUE)[1]
       private$col <- which(map == "^", arr.ind = TRUE)[2]
+      ## past locations we've visited
       private$history <- matrix(c(private$row, private$col), ncol = 2)
-      private$histhash = rlang::hash(private$history[1, ])
+      ## hash location *andd* direction; if this is repeated then we're in a
+      ## loop
+      private$histhash = hash(
+        c(private$history[1, ], which(private$dir == private$dirs))
+      )
       private$dir <- "up"
       private$done <- FALSE
     },
@@ -58,22 +64,23 @@ Guard <- R6::R6Class("Guard",
         )
         private$histhash <- c(
           private$histhash,
-          rlang::hash(c(next_loc, which(private$dir == private$dirs)))
+          hash(c(next_loc, which(private$dir == private$dirs)))
         )
       }
     },
 
     patrol = function(map = private$map) {
-      while (!private$done && !rlang::hash(c(private$row, private$col, private$dir)) %in% private$histhash) {
+      while (!private$done && !any(duplicated(private$histhash))) {
         self$move(map)
       }
     },
 
-    n_positions = function() {
+    n_positions = function(map = private$map) {
+      self$patrol(map)
       nrow(unique(private$history))
     },
 
-    check_for_loop = function(obst, map) {
+    check_for_loop = function(obst, map = private$map) {
       ## reset history, etc.
       self$initialize(map = map)
 
@@ -90,18 +97,23 @@ Guard <- R6::R6Class("Guard",
     },
 
     find_obstacle_positions = function(map = private$map) {
-      options <- as.matrix(private$history[, 1:2])
-      logger::log_info("{nrow(options)} options")
-      #loops <- apply(options, 1, self$check_for_loop, map = map)
+      # possible locations are those in the historical path, minus the starting
+      # location
+      options <- as.matrix(unique(private$history[2:nrow(private$history), ]))
+      log_info("Checking {nrow(options)} options")
+
       loops <- apply(
         options,
         1,
         function(x) {
-          logger::log_info("trying option {toString(x)}")
-          self$check_for_loop(x, map)
+          log_info("trying option {toString(x)}")
+          if (self$check_for_loop(x, map)) {
+            return(TRUE)
+          }
+          FALSE
         }
       )
-      head(loops)
+      sum(loops)
     }
   )
 )
@@ -109,9 +121,10 @@ Guard <- R6::R6Class("Guard",
 g <- Guard$new(map = dat)
 
 ## part 1
-g$patrol()
 g$n_positions()
 
-
 ## part 2
-g$find_obstacle_positions()
+g$find_obstacle_positions() # note this will only work if g$patrol() has been
+                            # run once first (i.e. via g$n_positions() in step
+                            # 1) because it needs to know the path history to
+                            # find candidate obstacle locations
