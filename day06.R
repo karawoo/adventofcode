@@ -65,7 +65,7 @@ Guard <- R6::R6Class("Guard",
     },
 
     patrol = function(map = private$map) {
-      while (!private$done && !any(duplicated(private$history))) {
+      while (!private$done) {
         self$move(map)
       }
     },
@@ -111,7 +111,7 @@ g <- Guard$new(map = dat)
 
 ## part 1
 system.time(g$patrol())
-## g$n_positions()
+g$n_positions()
 
 
 ## part 2
