@@ -23,10 +23,13 @@ Guard <- R6::R6Class("Guard",
       private$map <- map
       private$row <- which(map == "^", arr.ind = TRUE)[1]
       private$col <- which(map == "^", arr.ind = TRUE)[2]
-      private$history <- c(
-        private$row,
-        private$col,
-        which(private$dir == private$dirs)
+      private$history <- matrix(
+        c(
+          private$row,
+          private$col,
+          which(private$dir == private$dirs)
+        ),
+        ncol = 3
       )
       private$dir <- "up"
       private$done <- FALSE
@@ -54,7 +57,10 @@ Guard <- R6::R6Class("Guard",
       } else {
         private$row <- next_loc[1]
         private$col <- next_loc[2]
-        private$history <- rbind(private$history, c(next_loc, private$dir))
+        private$history <- rbind(
+          private$history,
+          c(next_loc, which(private$dir == private$dirs))
+        )
       }
     },
 
