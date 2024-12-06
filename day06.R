@@ -23,10 +23,13 @@ Guard <- R6::R6Class("Guard",
       private$map <- map
       private$row <- which(map == "^", arr.ind = TRUE)[1]
       private$col <- which(map == "^", arr.ind = TRUE)[2]
-      private$history <- c(
-        private$row,
-        private$col,
-        which(private$dir == private$dirs)
+      private$history <- matrix(
+        c(
+          private$row,
+          private$col,
+          which(private$dir == private$dirs)
+        ),
+        nrow = 1
       )
       private$dir <- "up"
       private$done <- FALSE
@@ -54,18 +57,33 @@ Guard <- R6::R6Class("Guard",
       } else {
         private$row <- next_loc[1]
         private$col <- next_loc[2]
-        private$history <- rbind(private$history, c(next_loc, private$dir))
+        new_row <- c(next_loc, which(private$dir == private$dirs))
+
+        dup <- any(apply(private$history, 1, \(x) all(x == new_row)))
+        if (dup) {
+          stop("we're in a loop")
+        }
+        private$history <- rbind(private$history, new_row)
       }
     },
 
     patrol = function(map = private$map) {
-      while (!private$done && !any(duplicated(private$history))) {
-        self$move(map)
+      loop <- FALSE
+      while (!private$done && loop == FALSE) {
+        loop <- tryCatch({
+          self$move(map)
+          FALSE
+        },
+        error = function(e) {
+          TRUE
+        }
+        )
       }
     },
 
     n_positions = function() {
       nrow(unique(private$history[, 1:2])) # don't include direction
+      #print(private$history)
     },
 
     check_for_loop = function(obst, map) {
@@ -104,9 +122,9 @@ Guard <- R6::R6Class("Guard",
 g <- Guard$new(map = dat)
 
 ## part 1
-system.time(g$patrol())
-## g$n_positions()
+profvis::profvis(system.time(g$patrol()))
+g$n_positions()
 
 
 ## part 2
-profvis::profvis(g$find_obstacle_positions())
+#profvis::profvis(g$find_obstacle_positions())
