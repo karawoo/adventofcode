@@ -91,7 +91,7 @@ Guard <- R6::R6Class("Guard",
     },
 
     find_obstacle_positions = function(map = private$map) {
-      options <- which(map == ".", arr.ind = TRUE)
+      options <- as.matrix(private$history[, 1:2])
       logger::log_info("{nrow(options)} options")
       #loops <- apply(options, 1, self$check_for_loop, map = map)
       loops <- apply(
