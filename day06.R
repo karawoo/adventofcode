@@ -1,6 +1,6 @@
 library("readr")
 
-dat <- read_fwf("input06.txt", col_positions = fwf_widths(rep(1, 10))) |>
+dat <- read_fwf("input06.txt", col_positions = fwf_widths(rep(1, 130))) |>
   as.matrix()
 
 
@@ -10,8 +10,7 @@ Guard <- R6::R6Class("Guard",
     dirs = c("up", "right", "down", "left"),
     col = NULL,
     row = NULL,
-    history = matrix(ncol = 2, nrow = 0),
-    histhash = c(),
+    history = matrix(ncol = 3, nrow = 0),
     map = NULL,
     done = FALSE
   ),
@@ -24,8 +23,14 @@ Guard <- R6::R6Class("Guard",
       private$map <- map
       private$row <- which(map == "^", arr.ind = TRUE)[1]
       private$col <- which(map == "^", arr.ind = TRUE)[2]
-      private$history <- matrix(c(private$row, private$col), ncol = 2)
-      private$histhash = rlang::hash(private$history[1, ])
+      private$history <- matrix(
+        c(
+          private$row,
+          private$col,
+          which(private$dir == private$dirs)
+        ),
+        ncol = 3
+      )
       private$dir <- "up"
       private$done <- FALSE
     },
@@ -54,23 +59,19 @@ Guard <- R6::R6Class("Guard",
         private$col <- next_loc[2]
         private$history <- rbind(
           private$history,
-          next_loc
-        )
-        private$histhash <- c(
-          private$histhash,
-          rlang::hash(c(next_loc, which(private$dir == private$dirs)))
+          c(next_loc, which(private$dir == private$dirs))
         )
       }
     },
 
     patrol = function(map = private$map) {
-      while (!private$done && !rlang::hash(c(private$row, private$col, private$dir)) %in% private$histhash) {
+      while (!private$done) {
         self$move(map)
       }
     },
 
     n_positions = function() {
-      nrow(unique(private$history))
+      nrow(unique(private$history[, 1:2])) # don't include direction
     },
 
     check_for_loop = function(obst, map) {
@@ -109,9 +110,9 @@ Guard <- R6::R6Class("Guard",
 g <- Guard$new(map = dat)
 
 ## part 1
-g$patrol()
+system.time(g$patrol())
 g$n_positions()
 
 
 ## part 2
-g$find_obstacle_positions()
+profvis::profvis(g$find_obstacle_positions())
