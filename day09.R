@@ -26,10 +26,10 @@ sum((seq_along(compacted) - 1) * compacted, na.rm = TRUE)
 
 ## part 2
 
-find_fit <- function(b, space_size) {
+find_fit <- function(b, space_size, space_index) {
   result <- c()
   for (i in seq_along(b)) {
-    if (b[i] > space_size) {
+    if (b[i] > space_size || as.numeric(names(b[i])) < as.numeric(names(spaces[i]))) {
       next
     } else if (sum(result) == space_size) {
       break
@@ -45,7 +45,7 @@ fill_ins <- vector(mode = "list", length(spaces))
 x <- rev(blocks)
 
 for (i in seq_along(spaces)) {
-  fits <- find_fit(x, space_size = spaces[i])
+  fits <- find_fit(x, space_size = spaces[i], space_index = i)
   fit_expanded <- as.numeric(rep(names(fits), fits))
   fill_ins[[i]] <- c(fit_expanded, rep(NA, spaces[i] - length(fit_expanded)))
   x <- x[setdiff(names(x), names(fits))]
