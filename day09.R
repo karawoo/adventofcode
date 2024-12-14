@@ -1,4 +1,5 @@
 library("purrr")
+options(scipen = 999)
 
 dat <- readLines("input09.txt") |>
   strsplit("") |>
@@ -25,11 +26,12 @@ compacted <- compacted[1:(length(compacted) - length(to_move))]
 sum((seq_along(compacted) - 1) * compacted, na.rm = TRUE)
 
 ## part 2
-
-find_fit <- function(b, space_size, space_index) {
+find_fit <- function(b, space_size) {
   result <- c()
   for (i in seq_along(b)) {
-    if (b[i] > space_size || as.numeric(names(b[i])) < as.numeric(names(spaces[i]))) {
+    # can only move left, so if the index of the file is < index of the space,
+    # this isn't a candidate
+    if (b[i] > space_size || as.numeric(names(b[i])) < as.numeric(names(space_size))) {
       next
     } else if (sum(result) == space_size) {
       break
@@ -45,17 +47,16 @@ fill_ins <- vector(mode = "list", length(spaces))
 x <- rev(blocks)
 
 for (i in seq_along(spaces)) {
-  fits <- find_fit(x, space_size = spaces[i], space_index = i)
+  fits <- find_fit(x, space_size = spaces[i])
   fit_expanded <- as.numeric(rep(names(fits), fits))
   fill_ins[[i]] <- c(fit_expanded, rep(NA, spaces[i] - length(fit_expanded)))
   x <- x[setdiff(names(x), names(fits))]
 }
 
 fill_ins <- unlist(fill_ins)
-
 compacted2 <- b
-
 compacted2[!is.na(compacted2) & compacted2 %in% fill_ins] <- 0
 compacted2[is.na(compacted2)] <- fill_ins
 
 sum((seq_along(compacted2) - 1) * compacted2, na.rm = TRUE)
+
