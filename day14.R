@@ -1,7 +1,6 @@
 library("readr")
 library("stringr")
 library("tidyverse")
-library("R6")
 library("DescTools")
 
 dat <- read_delim("input14.txt", " ", col_names = c("pos", "vel"))
