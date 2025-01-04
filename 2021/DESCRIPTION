@@ -1,0 +1,21 @@
+Package: adventofcode2021
+Title: Advent of Code solutions
+Version: 0.0.0.9000
+Authors@R:
+    person("Kara", "Woo", email = "woo.kara@gmail.com", role = c("aut", "cre"))
+Description: Contains solutions for 2021 Advent of Code puzzles.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports:
+    dplyr,
+    magrittr,
+    rlang,
+    stringr,
+    tibble,
+    tidyr,
+    utils
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
