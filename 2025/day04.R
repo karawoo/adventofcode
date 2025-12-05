@@ -29,7 +29,7 @@ get_neighbors <- function(row, col, dat) {
 
   neighbors <- do.call(rbind, possible)
   colnames(neighbors) <- c("row", "col")
-  neighbors[!oob(neighbors[1, ], dat) && !oob(neighbors[2, ], dat), ]
+  neighbors[!oob(neighbors[, 1], dat) & !oob(neighbors[, 2], dat), ]
 }
 
 is_movable <- function(neighbors, dat) {
