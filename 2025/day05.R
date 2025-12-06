@@ -1,4 +1,5 @@
 dat <- readLines("input05.txt")
+options(scipen = 9999)
 
 ranges <- dat[1:(which(dat == "") - 1)] |>
   strsplit("-") |>
