@@ -1,5 +1,6 @@
 library("readr")
 library("purrr")
+library("dplyr")
 options(scipen = 9999)
 
 file <- "input06.txt"
@@ -8,7 +9,9 @@ ncol <- length(strsplit(orig[[1]], "\\s+")[[1]])
 
 ## part 1
 
-dat1 <- read_fwf(file, n_max = ncol)
+dat1 <- read_fwf(file, n_max = length(orig) - 1) |>
+  mutate(across(everything(), as.numeric))
+
 ops <- tail(orig, 1) |>
   strsplit("\\s+")
 
